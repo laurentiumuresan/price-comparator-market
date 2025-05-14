@@ -1,5 +1,6 @@
 package com.laurentiu.price_comparator_market.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -19,10 +20,12 @@ public class Price {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supermarket_id")
+    @JsonIgnore
     private Supermarket supermarket;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
+    @JsonIgnore
     private Product product;
 
 }
