@@ -67,4 +67,9 @@ public class DiscountService {
                 )
                 .collect(Collectors.toList());
     }
+
+    public List<Discount> getActiveDiscountsForProduct(String productId){
+        LocalDate today = LocalDate.now();
+        return discountRepository.findActiveDiscountForProduct(productId, today);
+    }
 }
