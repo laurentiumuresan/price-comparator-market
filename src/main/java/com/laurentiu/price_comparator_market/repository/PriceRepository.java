@@ -14,7 +14,7 @@ public interface PriceRepository extends JpaRepository<Price, Long> {
     @Query("select p from Price p join p.product prod where prod.name = :productName" +
             " and p.timestamp= (select max(p2.timestamp) " +
             "from Price p2 join p2.product prod2 where prod2.name =: productName)")
-    List<Price> findLatestPriceByProductId(@Param("productName") String productName);
+    List<Price> findLatestPriceByProductName(@Param("productName") String productName);
 
 
     @Query("select p from Price p join fetch p.product prod join fetch p.supermarket s " +

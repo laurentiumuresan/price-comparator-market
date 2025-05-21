@@ -1,6 +1,7 @@
 package com.laurentiu.price_comparator_market.service;
 
 import com.laurentiu.price_comparator_market.dto.PriceHistoryRequestDTO;
+import com.laurentiu.price_comparator_market.dto.PricePerUnitDTO;
 import com.laurentiu.price_comparator_market.dto.PricePointDTO;
 import com.laurentiu.price_comparator_market.dto.ProductPriceHistoryDTO;
 import com.laurentiu.price_comparator_market.entity.Discount;
@@ -35,10 +36,35 @@ public class PriceService {
     }
 
     public Price findLowestPriceForProduct(String productName, LocalDate date) {
-        List<Price> prices = priceRepository.findLatestPriceByProductId(productName);
+        List<Price> prices = priceRepository.findLatestPriceByProductName(productName);
         return prices.stream()
                 .min(Comparator.comparing(Price::getAmount))
                 .orElse(null);
+    }
+
+    public List<PricePerUnitDTO> getPricePerUnit(String productName){
+        List<Price> prices = priceRepository.findLatestPriceByProductName(productName);
+
+        if(prices.isEmpty()) return null;
+
+        return prices.stream().map(price -> {
+            Product product = price.getProduct();
+            String unit= product.getPackageUnit().toLowerCase();
+            BigDecimal multiplier = (unit.equals("g") || unit.equals("ml")) ? BigDecimal.valueOf(1000) : BigDecimal.ONE;
+            String standardUnit = unit.equals("g") ? "kg" : unit.equals("ml") ? "l" : unit;
+
+            BigDecimal pricePerUnit= price.getAmount()
+                    .multiply(multiplier)
+                    .divide(BigDecimal.valueOf(product.getPackageQuantity()), 2, RoundingMode.HALF_UP);
+
+            return new PricePerUnitDTO(
+                    price.getSupermarket().getName(),
+                    price.getAmount(),
+                    pricePerUnit,
+                    standardUnit
+            );
+        })
+                .sorted(Comparator.comparing(PricePerUnitDTO::pricePerUnit)).toList();
     }
 
     public ProductPriceHistoryDTO getProductPriceHistory(PriceHistoryRequestDTO request) {
