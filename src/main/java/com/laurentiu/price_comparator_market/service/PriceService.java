@@ -21,6 +21,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
+/**
+ * Service class responsible for handling price-related operations such as calculating final prices,
+ * finding the lowest price for a product, retrieving price per unit details, and fetching price history.
+ * Utilizes repositories for interacting with the underlying data storage for prices and discounts.
+ */
+
 @Service
 @RequiredArgsConstructor
 public class PriceService {

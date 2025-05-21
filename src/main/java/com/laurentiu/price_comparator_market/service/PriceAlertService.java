@@ -7,6 +7,7 @@ import com.laurentiu.price_comparator_market.entity.Product;
 import com.laurentiu.price_comparator_market.repository.PriceAlertRepository;
 import com.laurentiu.price_comparator_market.repository.PriceRepository;
 import com.laurentiu.price_comparator_market.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,22 +26,20 @@ public class PriceAlertService {
 
     public PriceAlert createPriceAlert(PriceAlertRequestDTO request) {
 
-        Product product = productRepository.findByName(request.productName())
+        Product product = productRepository.findByNameAndBrand(request.productName(), request.productBrand())
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         PriceAlert alert = new PriceAlert();
         alert.setProduct(product);
         alert.setTargetPrice(request.targetPrice());
         alert.setUserEmail(request.userEmail());
+        alert.setActive(true);
 
-        PriceAlert savedAlert = priceAlertRepository.save(alert);
-
-        checkCurrentPrice(savedAlert);
-
-        return savedAlert;
+        return priceAlertRepository.save(alert);
     }
 
-    private void checkCurrentPrice(PriceAlert alert){
+    @Transactional
+    public void checkCurrentPrice(PriceAlert alert){
         List<Price> currentPrices = priceRepository.findLatestPriceByProductName(alert.getProduct().getName());
 
         currentPrices.stream()
@@ -63,7 +62,8 @@ public class PriceAlertService {
 
     }
 
-    @Scheduled(fixedRate = 600000)
+    @Scheduled(fixedRate = 120000)
+    @Transactional
     public void checkAllActiveAlerts(){
         List<PriceAlert> activeAlerts = priceAlertRepository.findByIsActiveTrue();
         activeAlerts.forEach(this::checkCurrentPrice);
